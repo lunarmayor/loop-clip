@@ -1,0 +1,6 @@
+<h4>
+  Paste a YouTube video url to start editing
+</h4>
+
+<input placeholder="https://www.youtube.com/watch?v=0ScYz9sNaQk" class="editor-input">
+<div class="error"></div>

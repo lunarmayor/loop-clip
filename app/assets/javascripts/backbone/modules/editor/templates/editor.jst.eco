@@ -1,0 +1,6 @@
+<div class="video-container">
+  <div id="player"></div>
+</div>
+<div id="range-slider"></div>
+<div class="share">Share Clip</div>
+<div class="permalink"></div>
