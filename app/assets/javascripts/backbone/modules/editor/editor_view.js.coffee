@@ -95,17 +95,27 @@ YoutubeEditor.module 'Editor', (Editor, App) ->
           height: '390',
           width: '640',
           playerVars: {
-            'start': view.model.get('start_time'),
-            'end':  view.model.get('end_time')
+            'controls': 0,
+            'start': view.model.get('start_time')
           },
           videoId: view.model.get('video_id'),
           events: {
-            onReady: -> view.setupPlayer()
+            onReady: -> view.setupPlayer(),
+            onStateChange: (e) ->
+              console.log(e)
+              if(e.data == 0)
+              	view.player.seekTo(view.model.get('start_time'))
           }
         })
 
     setupPlayer: ->
+      @checkEndTime(this)
       @player.playVideo()
+
+    checkEndTime: (view) =>
+      requestAnimationFrame((=> @checkEndTime(view)))
+      if view.player.getCurrentTime() >= view.model.get('end_time')
+      	view.player.seekTo(view.model.get('start_time'))
 
 
         
