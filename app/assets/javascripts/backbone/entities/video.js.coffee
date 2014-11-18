@@ -14,9 +14,12 @@ YoutubeEditor.module "Entities", (Entities, App) ->
       	clips
       
       getClip: (id) ->
+        defer = $.Deferred()
         clip = new Entities.Clip({id: id})
-        clip.fetch()
-        clip
+        clip.fetch
+          success: ->
+            defer.resolve(clip)
+        defer.promise()
 
       getNewClip: (attrs={}) ->
         clip = new Entities.Clip(attrs)

@@ -1,4 +1,8 @@
 YoutubeEditor.module 'Editor', (Editor, App) ->
+  
+  ###
+  # View for managing Editor URL Input
+  ###
   class Editor.InputView extends App.Views.ItemView
     template: 'editor/templates/editor_input'
     className: 'input-container'
@@ -14,6 +18,9 @@ YoutubeEditor.module 'Editor', (Editor, App) ->
       else
       	@$el.find('.error').text("This doesn't look like a valid url")
 
+  ###
+  # View to manage Editor
+  ###
   class Editor.View extends App.Views.ItemView
     template: 'editor/templates/editor'
     className: 'editor'
@@ -25,35 +32,25 @@ YoutubeEditor.module 'Editor', (Editor, App) ->
     saveClip: ->
       @model.save({}, success: (data) =>
         @$el.find('.permalink').text("Link: " + window.location.origin + '/clips/' + @model.get('id'))
-
       )
 
-    
     onRender: ->
-      tag = document.createElement('script')
-      tag.src = "https://www.youtube.com/iframe_api"
-      firstScriptTag = document.getElementsByTagName('script')[0]
-      firstScriptTag.parentNode.insertBefore(tag, firstScriptTag)
-      
-      view = @
-
-      window.onYouTubeIframeAPIReady = ->
-      	view.player = new YT.Player('player', {
-          height: '390',
-          width: '640',
-          videoId: view.model.get('video_id'),
-          events: {
-          	onReady: -> view.setupPlayer()
-          }
-        })
+      @player = new YT.Player(@$el.find('#player')[0], {
+        height: '390',
+        width: '640',
+        videoId: @model.get('video_id'),
+        events: {
+          onReady: => @setupPlayer()
+        }
+      })
 
     setupPlayer: ->
-      that = this
-      @checkEndTime(that)
-      
-      @model.attributes.start_time = 0
-      @model.attributes.end_time = @player.getDuration()
-      
+      @checkEndTime(this)
+      @setInitialRangeValues()
+      @setupRangeSlider()
+      @player.playVideo()
+
+    setupRangeSlider: ->
       @$el.find('#range-slider').slider({
         range: true,
         min: 0,
@@ -67,7 +64,9 @@ YoutubeEditor.module 'Editor', (Editor, App) ->
           @updatePlayer() if startChanged
       })
 
-      @player.playVideo()
+    setInitialRangeValues: ->
+      @model.attributes.start_time = 0
+      @model.attributes.end_time = @player.getDuration()
 
     updatePlayer: ->
       @player.seekTo(@model.get('start_time'))
@@ -77,34 +76,27 @@ YoutubeEditor.module 'Editor', (Editor, App) ->
       if view.player.getCurrentTime() > view.model.get('end_time')
       	view.player.seekTo(view.model.get('start_time'))
 
-
+  ###
+  # view to manage read only editor
+  ###
   class Editor.ShowView extends App.Views.ItemView
     template: 'editor/templates/show'
     className: 'editor'
 
     onRender: ->
-      tag = document.createElement('script')
-      tag.src = "https://www.youtube.com/iframe_api"
-      firstScriptTag = document.getElementsByTagName('script')[0]
-      firstScriptTag.parentNode.insertBefore(tag, firstScriptTag)
-      console.log(@model)
-      view = @
-
-      window.onYouTubeIframeAPIReady = ->
-        view.player = new YT.Player('player', {
-          height: '390',
-          width: '640',
-          playerVars: {
-            'controls': 0,
-            'start': view.model.get('start_time')
-          },
-          videoId: view.model.get('video_id'),
-          events: {
-            onReady: -> view.setupPlayer(),
-            onStateChange: (e) ->
-              console.log(e)
-              if(e.data == 0)
-              	view.player.seekTo(view.model.get('start_time'))
+      @player = new YT.Player(@$el.find('#player')[0], {
+        height: '390',
+        width: '640',
+        playerVars: {
+          'controls': 0,
+          'start': @model.get('start_time')
+        },
+        videoId: @model.get('video_id'),
+        events: {
+          onReady: => 
+            @setupPlayer()
+          onStateChange: (e) => 
+            @player.seekTo(@model.get('start_time')) if e.data == 0
           }
         })
 

@@ -11,9 +11,10 @@ YoutubeEditor.module "Editor", (Editor, App) ->
       App.mainRegion.show(EditorInputView)
 
     setupShow: (id) ->
-      clip = App.request('clip:entity', id)
-      showView = new Editor.ShowView(model: clip)
-      App.mainRegion.show(showView)
+      fetching_clip = App.request('clip:entity', id)
+      fetching_clip.done (clip) ->
+        showView = new Editor.ShowView(model: clip)
+        App.mainRegion.show(showView)
     
     setupEditor: (videoId) ->
       clip = App.request('new:clip:entity', {video_id: videoId} )
